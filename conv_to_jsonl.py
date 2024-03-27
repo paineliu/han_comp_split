@@ -254,10 +254,7 @@ def conv_to_jsonl(data_pathname, jsonl_filename):
 if __name__=='__main__':
 
     # args = parse_args()
-    # pot2cjl(args.pot_pathname, args.jsonl_filename)
     
-    conv_to_jsonl('./data/3rd/hw', './data/dink/hw_test.jsonl')
-
     conv_to_jsonl('./data/3rd/casia/Pot1.0Test', './data/dink/pot1_test.jsonl')
     conv_to_jsonl('./data/3rd/casia/Pot1.0Train', './data/dink/pot1_train.jsonl')
     conv_to_jsonl('./data/3rd/casia/Pot1.0Val', './data/dink/pot1_val.jsonl')

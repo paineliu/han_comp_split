@@ -476,26 +476,6 @@ def dink2stroke(han_filename, comp_filename, input_filename, h5_filename, output
 
     hdf = H5HanDataset(h5_filename)
     print(len(hdf), hdf[0])
-    
-def split_dat_to_train(filename, pathname):
-    base_filename = os.path.basename(filename).split('.')[0]
-    test_filename = os.path.join(pathname, base_filename + '_test.jsonl')
-    train_filename = os.path.join(pathname, base_filename + '_train.jsonl')
-    val_filename = os.path.join(pathname, base_filename + '_val.jsonl')
-    os.makedirs(os.path.dirname(test_filename), exist_ok=True)
-    os.makedirs(os.path.dirname(train_filename), exist_ok=True)
-    os.makedirs(os.path.dirname(val_filename), exist_ok=True)
-    f_train = open(train_filename, 'w', encoding='utf_8')
-    f_test = open(test_filename, 'w', encoding='utf_8')
-    f_val = open(val_filename, 'w', encoding='utf_8')
-    f = open(filename, 'r', encoding='utf_8')
-    for i, each in enumerate(f):
-        if (i % 10) < 8:
-            f_train.write(each)
-        elif (i % 10) < 9:
-            f_test.write(each)
-        else:
-            f_val.write(each)
 
 
 
@@ -514,9 +494,6 @@ if __name__=='__main__':
     # conv_to_dink('./data/3rd/scut/Couch_GB1_188/val', './data/dink/scut_val.jsonl')
     # conv_to_dink('./data/3rd/scut/Couch_GB1_188/train', './data/dink/scut_train.jsonl')
     
-    conv_to_jsonl('./data/3rd/palm', './data/3rd/palm_merge/palm.jsonl')
-    split_dat_to_train('./data/3rd/palm_merge/palm.jsonl', './data/dink')
-
     for prefix in ['palm']:
         for item in ['test', 'val', 'train']:
             dink_normalize('./data/dink/{}_{}.jsonl'.format(prefix, item), './data/dink/{}_256x256_{}.jsonl'.format(prefix, item), width, height)
