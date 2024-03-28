@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import time
-import pandas as pd
 
 class HanComp:
     def __init__(self, han_filename, comp_filename, print_log = True):

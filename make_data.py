@@ -486,20 +486,12 @@ if __name__=='__main__':
     width = 256
     height = 256
 
-    # conv_to_dink('./data/3rd/casia/Pot1.0Test', './data/dink/casia_test.jsonl')
-    # conv_to_dink('./data/3rd/casia/Pot1.0Val', './data/dink/casia_val.jsonl')
-    # conv_to_dink('./data/3rd/casia/Pot1.0Train', './data/dink/casia_train.jsonl')
-
-    # conv_to_dink('./data/3rd/scut/Couch_GB1_188/test', './data/dink/scut_test.jsonl')
-    # conv_to_dink('./data/3rd/scut/Couch_GB1_188/val', './data/dink/scut_val.jsonl')
-    # conv_to_dink('./data/3rd/scut/Couch_GB1_188/train', './data/dink/scut_train.jsonl')
-    
-    for prefix in ['palm']:
+    for prefix in ['palm_gbk']:
         for item in ['test', 'val', 'train']:
-            dink_normalize('./data/dink/{}_{}.jsonl'.format(prefix, item), './data/dink/{}_256x256_{}.jsonl'.format(prefix, item), width, height)
+            dink_normalize('./data/jsonl/{}_{}.jsonl'.format(prefix, item), './data/dink/{}_256x256_{}.jsonl'.format(prefix, item), width, height)
             dink_add_comp('./labels/han.jsonl', './labels/comp.jsonl', './data/dink/{}_256x256_{}.jsonl'.format(prefix, item), './data/dink/{}_256x256_comp_{}.jsonl'.format(prefix, item))
             dink_comp_extr('./labels/han.jsonl', './labels/comp.jsonl', './data/dink/{}_256x256_comp_{}.jsonl'.format(prefix,item), './data/result/han_comp_extr_{}_{}.h5'.format(prefix,item), './data/result/han_comp_extr_{}_{}.jsonl'.format(prefix,item))    
             dink2stroke('./labels/han.jsonl', './labels/comp.jsonl', './data/dink/{}_256x256_comp_{}.jsonl'.format(prefix,item), './data/result/han_stroke_{}_{}.h5'.format(prefix, item), './data/result/han_stroke_{}_{}.jsonl'.format(prefix, item))
-            dink2sorder('./data/dink/{}_256x256_comp_{}.jsonl'.format(prefix, item), './data/result/han_sorder_{}_{}.h5'.format(prefix, item), './data/result/han_sorder_{}_{}.jsonl'.format(prefix, item))
+            # dink2sorder('./data/dink/{}_256x256_comp_{}.jsonl'.format(prefix, item), './data/result/han_sorder_{}_{}.h5'.format(prefix, item), './data/result/han_sorder_{}_{}.jsonl'.format(prefix, item))
 
     
