@@ -3,7 +3,7 @@
 
 import os 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  #（保证程序cuda序号与实际cuda序号对应）
-os.environ['CUDA_VISIBLE_DEVICES'] = "2"  #（代表仅使用第0，1号GPU）
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"  #（代表仅使用第0，1号GPU）
 
 import torch
 import torch.nn as nn
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from torch import optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from make_data import H5HanDataset
+from make_train_data import H5HanDataset
 from han_comp import HanComp
 seed = 1234
 
@@ -572,7 +572,7 @@ def predict(han_label, model, model_filename, test_data_loader, show_all = False
             break
 
 def train_model(han_label, name, epochs, add_han_label_dataset=False):
-    model_filename =      './output/{}_model.pt'.format(name)
+    model_filename =      './output/{}/{}_model.pt'.format(name, name)
     data_train_filename = './data/result/{}_train.h5'.format(name)
     data_val_filename =   './data/result/{}_val.h5'.format(name)
     data_test_filename =  './data/result/{}_test.h5'.format(name)
@@ -625,10 +625,12 @@ if __name__ == "__main__":
     han_order_label = HanOrderLabel(han_comp)
     han_stroke_label = HanStrokeLabel(han_comp)
 
-    # train_model(han_comp_label, 'han_comp_extr_scut', epochs = 100)
-    # train_model(han_order_label, 'han_sorder_scut', epochs = 100)
-    # train_model(han_stroke_label, 'han_stroke_palm', epochs = 100, add_han_label_dataset=False)
-    train_model(han_order_label, 'han_sorder_palm', epochs = 100, add_han_label_dataset=False)
-    # train_model(han_comp_label, 'han_comp_extr_palm', epochs = 100, add_han_label_dataset=False)
+
+    # train_model(han_comp_label, 'han_comp_extr_casia', epochs = 100, add_han_label_dataset=False)
+    # train_model(han_order_label, 'han_sorder_palm_6728', epochs = 100, add_han_label_dataset=False)
+    train_model(han_order_label, 'han_sorder_palm_6c49', epochs = 100, add_han_label_dataset=False)
+    # train_model(han_comp_label, 'han_comp_extr_palm_920', epochs = 100, add_han_label_dataset=False)
+    # train_model(han_stroke_label, 'han_stroke_palm_920', epochs = 100, add_han_label_dataset=False)
+    # train_model(han_order_label, 'han_sorder_palm_920', epochs = 100, add_han_label_dataset=False)
     
     # train_model(han_order_label, 'han_sorder_scut', epochs = 100, add_han_label_dataset=True)
