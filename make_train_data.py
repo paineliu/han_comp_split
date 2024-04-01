@@ -193,7 +193,7 @@ class H5HanDataset():
     def __len__(self):
         return self.num_samples
 
-def dink_comp_extr(han_filename, comp_filename, input_filename, h5_filename, output_filename):
+def make_comp_train_data(han_filename, comp_filename, input_filename, h5_filename, output_filename):
     
     han_comp = HanComp(han_filename, comp_filename)
 
@@ -545,7 +545,7 @@ if __name__=='__main__':
         for item in ['test', 'val', 'train']:
             stroke_data_normalize('./data/jsonl/{}_{}.jsonl'.format(prefix, item), './data/jsonl/{}_256x256_{}.jsonl'.format(prefix, item), width, height)
             stroke_data_add_comp('./labels/han.jsonl', './labels/comp.jsonl', './data/jsonl/{}_256x256_{}.jsonl'.format(prefix, item), './data/jsonl/{}_256x256_comp_{}.jsonl'.format(prefix, item))
-            # dink_comp_extr('./labels/han.jsonl', './labels/comp.jsonl', './data/jsonl/{}_256x256_comp_{}.jsonl'.format(prefix,item), './data/result/han_comp_extr_{}_{}.h5'.format(prefix,item), './data/result/han_comp_extr_{}_{}.jsonl'.format(prefix,item))    
+            make_comp_train_data('./labels/han.jsonl', './labels/comp.jsonl', './data/jsonl/{}_256x256_comp_{}.jsonl'.format(prefix,item), './data/result/han_comp_extr_{}_{}.h5'.format(prefix,item), './data/result/han_comp_extr_{}_{}.jsonl'.format(prefix,item))    
             make_sorder_train_data([], './data/jsonl/{}_256x256_comp_{}.jsonl'.format(prefix, item), './data/result/han_sorder_{}_{}.h5'.format(prefix, item), './data/result/han_sorder_{}_{}.jsonl'.format(prefix, item))
             pass
 

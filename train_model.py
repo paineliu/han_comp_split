@@ -2,8 +2,8 @@
 # pip3 install torch torchvision torchaudio tqdm matplotlib --index-url https://download.pytorch.org/whl/cu118
 
 import os 
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  #（保证程序cuda序号与实际cuda序号对应）
-# os.environ['CUDA_VISIBLE_DEVICES'] = "1"  #（代表仅使用第0，1号GPU）
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  #（保证程序cuda序号与实际cuda序号对应）
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"  #（代表仅使用第0，1号GPU）
 import sys
 import torch
 import torch.nn as nn
@@ -700,12 +700,11 @@ def predict_order(han_label, model_filename, test_filename, device):
         predict_label, _ = predict_fn(han_label, batch, model, device, len(han_label))
         print(predict_label)
 
-class HanOrderModel:
-    def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
+class HanMode:
+    def __init__(self, han_abel, model_filename, device = 'cpu'):
         self.device = device
-        self.han_comp = HanComp(han_filename, comp_filename)
-        self.han_order_label = HanOrderLabel(self.han_comp)
-        output_dim = len(self.han_order_label)
+        self.han_label = han_abel
+        output_dim = len(self.han_label)
         attention = Attention(encoder_hidden_dim, decoder_hidden_dim)
 
         encoder = Encoder(
@@ -757,7 +756,6 @@ class HanOrderModel:
                 pred_labels += '{},'.format(han_label.getLabel(han_label[i]))
         if len(pred_labels) > 0:
             pred_labels = pred_labels[:-1]
-        # plot_attention('', '', attentions)
         return pred_labels, inputs
 
     def get_order(self, strokes):
@@ -766,7 +764,7 @@ class HanOrderModel:
         label_ids = []
         point_data.append([[0, 0, 0, 0]])
 
-                # calc rect
+        # calc rect
         l = sys.maxsize
         t = sys.maxsize
         r = 0
@@ -782,12 +780,6 @@ class HanOrderModel:
                 b = y if y > b else b
 
         max_len = max(r - l, b - t)
-        
-        # for stroke in strokes:
-        #     for point in stroke:
-        #         point['x'] -= l
-        #         point['y'] -= t
-        
 
         for i, stroke in enumerate(strokes):
             for j, points in enumerate(stroke):
@@ -814,9 +806,22 @@ class HanOrderModel:
             "points_len": points_len
         }
 
-        predict_label, _ = self.predict_fn(self.han_order_label, batch, self.model, device, len(self.han_order_label))
+        predict_label, _ = self.predict_fn(self.han_label, batch, self.model, device, len(self.han_label))
         print(predict_label)
         return predict_label
+
+class HanOrderModel(HanMode):
+    def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
+        self.han_comp = HanComp(han_filename, comp_filename)
+        self.han_label = HanOrderLabel(self.han_comp)
+        super(HanOrderModel, self).__init__(self.han_label, model_filename, device) 
+
+class HanCompModel(HanMode):
+    def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
+        self.han_comp = HanComp(han_filename, comp_filename)
+        self.han_label = HanCompLabel(self.han_comp)
+        super(HanCompModel, self).__init__(self.han_label, model_filename, device) 
+
 
 if __name__ == "__main__":
 
