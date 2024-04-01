@@ -79,7 +79,7 @@ class HanCompLabel():
     def getEosId(self):
         return self.han_comp.get_comp_total() + 1
 
-    def getLabel(self,  idx):
+    def getLabel(self, idx):
         return self.han_comp.get_comp_name(idx - 1)
     
     def getLabelMaxLen(self):
@@ -571,6 +571,29 @@ def predict(han_label, model, model_filename, test_data_loader, show_all = False
         if i + 1 >= max_num:
             break
 
+def predict1(han_label, model, model_filename, test_data_loader, show_all = False, max_num=1000):
+    model.load_state_dict(torch.load(model_filename))
+    right_total = 0
+
+    for i, batch in enumerate(test_data_loader):
+        label = ''
+        label_id_list = batch['labels'].squeeze().tolist()
+        for idx in range(1, len(label_id_list) - 1):
+            label += han_label[label_id_list[idx]]
+        predict_label, _ = predict_fn(han_label, batch, model, device)
+        if (label == predict_label):
+            right_total += 1
+            if show_all:
+                print(i + 1, '  label =', label, 'predict =', predict_label)
+        else:
+            if show_all:
+                print(i + 1, '! label =', label, 'predict =', predict_label)
+            else:
+                print(i + 1, 'label =', label, 'predict =', predict_label)
+
+        if i + 1 >= max_num:
+            break
+
 def train_model(han_label, name, epochs, add_han_label_dataset=False):
     model_filename =      './output/{}/{}_model.pt'.format(name, name)
     data_train_filename = './data/result/{}_train.h5'.format(name)
@@ -615,6 +638,67 @@ def train_model(han_label, name, epochs, add_han_label_dataset=False):
     # test(han_label, model, model_filename, test_data_loader, max_num=10000)
     # predict(han_label, model, model_filename, oov_data_loader, show_all=True, max_num=100)
 
+def predict_order(han_label, model_filename, test_filename, device):
+    output_dim = len(han_label)
+    attention = Attention(encoder_hidden_dim, decoder_hidden_dim)
+
+    encoder = Encoder(
+        encoder_embedding_dim,
+        encoder_hidden_dim,
+        decoder_hidden_dim,
+        encoder_dropout,
+    )
+
+    decoder = Decoder(
+        output_dim,
+        decoder_embedding_dim,
+        encoder_hidden_dim,
+        decoder_hidden_dim,
+        decoder_dropout,
+        attention,
+    )
+
+    os.makedirs(os.path.dirname(model_filename), exist_ok=True)
+
+    model = Seq2Seq(encoder, decoder, device).to(device)      
+    model.load_state_dict(torch.load(model_filename))
+    
+    batch = {}
+    f = open(test_filename, mode='r', encoding='utf_8')
+    for each in f:
+        batch = json.loads(each)
+        point_data = []
+
+        label_ids = []
+        point_data.append([[0, 0, 0, 0]])
+        for item in batch['points']:
+            point_data.append([item])
+        point_data.append([[-1, -1, -1, -1]])
+
+        point_len = len(point_data)
+
+        labels = batch['labels'] 
+        label_ids.append([han_label.getBosId()])
+        for label in labels:
+            label_ids.append([label])
+        label_ids.append([han_label.getEosId()])
+        point_data = torch.tensor(point_data, dtype=torch.float32)
+        label_ids = torch.tensor(label_ids, dtype=torch.long)
+        
+        points = point_data
+        points_len = torch.tensor([point_len], dtype=torch.long)
+        batch_labels = label_ids
+
+        batch = {
+            "points": points,
+            "points_len": points_len,
+            "labels": batch_labels
+        }
+
+        predict_label, _ = predict_fn(han_label, batch, model, device, len(han_label))
+        print(predict_label)
+
+
 if __name__ == "__main__":
 
     han_filename = './labels/han.jsonl'
@@ -625,12 +709,14 @@ if __name__ == "__main__":
     han_order_label = HanOrderLabel(han_comp)
     han_stroke_label = HanStrokeLabel(han_comp)
 
-
+    model_filename = './output/{}/{}_model.4.pt'.format('han_sorder_palm_4f60', 'han_sorder_palm_4f60')
+    
+    predict_order(han_order_label, model_filename, './data/result/han_sorder_palm_4f60_test.jsonl', 'cpu')
     # train_model(han_comp_label, 'han_comp_extr_casia', epochs = 100, add_han_label_dataset=False)
     # train_model(han_order_label, 'han_sorder_palm_6728', epochs = 100, add_han_label_dataset=False)
-    train_model(han_order_label, 'han_sorder_palm_6c49', epochs = 100, add_han_label_dataset=False)
+    # train_model(han_order_label, 'han_sorder_palm_6c49', epochs = 100, add_han_label_dataset=False)
     # train_model(han_comp_label, 'han_comp_extr_palm_920', epochs = 100, add_han_label_dataset=False)
     # train_model(han_stroke_label, 'han_stroke_palm_920', epochs = 100, add_han_label_dataset=False)
-    # train_model(han_order_label, 'han_sorder_palm_920', epochs = 100, add_han_label_dataset=False)
+    train_model(han_order_label, 'han_sorder_palm_4f60', epochs = 100, add_han_label_dataset=False)
     
     # train_model(han_order_label, 'han_sorder_scut', epochs = 100, add_han_label_dataset=True)
