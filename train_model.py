@@ -2,9 +2,9 @@
 # pip3 install torch torchvision torchaudio tqdm matplotlib --index-url https://download.pytorch.org/whl/cu118
 
 import os 
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  #（保证程序cuda序号与实际cuda序号对应）
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"  #（代表仅使用第0，1号GPU）
-
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  #（保证程序cuda序号与实际cuda序号对应）
+# os.environ['CUDA_VISIBLE_DEVICES'] = "1"  #（代表仅使用第0，1号GPU）
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -660,15 +660,17 @@ def predict_order(han_label, model_filename, test_filename, device):
 
     os.makedirs(os.path.dirname(model_filename), exist_ok=True)
 
-    model = Seq2Seq(encoder, decoder, device).to(device)      
-    model.load_state_dict(torch.load(model_filename))
-    
+    model = Seq2Seq(encoder, decoder, device).to(device)
+    if device == 'cpu':
+        model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
+    else:
+        model.load_state_dict(torch.load(model_filename))
+
     batch = {}
     f = open(test_filename, mode='r', encoding='utf_8')
     for each in f:
         batch = json.loads(each)
         point_data = []
-
         label_ids = []
         point_data.append([[0, 0, 0, 0]])
         for item in batch['points']:
@@ -698,6 +700,123 @@ def predict_order(han_label, model_filename, test_filename, device):
         predict_label, _ = predict_fn(han_label, batch, model, device, len(han_label))
         print(predict_label)
 
+class HanOrderModel:
+    def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
+        self.device = device
+        self.han_comp = HanComp(han_filename, comp_filename)
+        self.han_order_label = HanOrderLabel(self.han_comp)
+        output_dim = len(self.han_order_label)
+        attention = Attention(encoder_hidden_dim, decoder_hidden_dim)
+
+        encoder = Encoder(
+            encoder_embedding_dim,
+            encoder_hidden_dim,
+            decoder_hidden_dim,
+            encoder_dropout,
+        )
+
+        decoder = Decoder(
+            output_dim,
+            decoder_embedding_dim,
+            encoder_hidden_dim,
+            decoder_hidden_dim,
+            decoder_dropout,
+            attention,
+        )
+
+        self.model = Seq2Seq(encoder, decoder, self.device).to(self.device)
+        if self.device == 'cpu':
+            self.model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
+        else:
+            self.model.load_state_dict(torch.load(model_filename))
+
+    def predict_fn(self, han_label, batch, model, device, max_output_length=5):
+        self.model.eval()
+        
+        bos_id = han_label.getBosId()
+        eos_id = han_label.getEosId()
+        
+        with torch.no_grad():
+            points = batch['points'].to(device)
+            points_len = batch['points_len'].to("cpu")
+            encoder_outputs, hidden = model.encoder(points, points_len)
+            inputs = [han_label.getBosId()]
+            attentions = torch.zeros(max_output_length, 1, points_len)
+            for i in range(max_output_length):
+                inputs_tensor = torch.LongTensor([inputs[-1]]).to(device)
+                output, hidden, attention = model.decoder(inputs_tensor, hidden, encoder_outputs)
+                attentions[i] = attention
+                predicted_token = output.argmax(-1).item()
+                inputs.append(predicted_token)
+                if predicted_token == eos_id:
+                    break
+
+        pred_labels = ''
+        for i in inputs:
+            if han_label[i] not in [bos_id, eos_id]:
+                pred_labels += '{},'.format(han_label.getLabel(han_label[i]))
+        if len(pred_labels) > 0:
+            pred_labels = pred_labels[:-1]
+        # plot_attention('', '', attentions)
+        return pred_labels, inputs
+
+    def get_order(self, strokes):
+
+        point_data = []
+        label_ids = []
+        point_data.append([[0, 0, 0, 0]])
+
+                # calc rect
+        l = sys.maxsize
+        t = sys.maxsize
+        r = 0
+        b = 0
+        for stroke in strokes:
+            for point in stroke:
+                x = point['x']
+                y = point['y']
+
+                l = x if x < l else l
+                t = y if y < t else t
+                r = x if x > r else r
+                b = y if y > b else b
+
+        max_len = max(r - l, b - t)
+        
+        # for stroke in strokes:
+        #     for point in stroke:
+        #         point['x'] -= l
+        #         point['y'] -= t
+        
+
+        for i, stroke in enumerate(strokes):
+            for j, points in enumerate(stroke):
+                x = points['x']
+                y = points['y']
+                x = int((x - l) * 256 / max_len)
+                y = int((y - t) * 256 / max_len)
+                point_data.append([[i, j, x, y]])
+
+        
+        point_data.append([[-1, -1, -1, -1]])
+        print(point_data)
+        point_len = len(point_data)
+
+        point_data = torch.tensor(point_data, dtype=torch.float32)
+        label_ids = torch.tensor(label_ids, dtype=torch.long)
+        
+        points = point_data
+        points_len = torch.tensor([point_len], dtype=torch.long)
+        batch_labels = label_ids
+
+        batch = {
+            "points": points,
+            "points_len": points_len
+        }
+
+        predict_label, _ = self.predict_fn(self.han_order_label, batch, self.model, device, len(self.han_order_label))
+        print(predict_label)
+        return predict_label
 
 if __name__ == "__main__":
 

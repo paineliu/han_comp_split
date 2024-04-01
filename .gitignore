@@ -163,3 +163,5 @@ cython_debug/
 prepare/
 data/
 output/
+3rd/
+
