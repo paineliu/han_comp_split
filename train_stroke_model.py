@@ -11,6 +11,11 @@ if __name__=='__main__':
     han_code = '6728' # 木
     han_code = '79cb' # 1.0
     # han_code = '8bed' # 语 0.89
+    han_code = '738b' # 王 1.0
+    han_code = '4f60' # 你 1.0
+    han_code = '600e' # 怎 
+    han_code = '597d' # 怎 
+
     
     
     conv_to_jsonl('./data/3rd/palm/{}'.format(han_code), './data/jsonl', 'palm_{}_'.format(han_code))

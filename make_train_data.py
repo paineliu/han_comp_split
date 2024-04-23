@@ -538,10 +538,10 @@ if __name__=='__main__':
     width = 256
     height = 256
 
-    palm_to_stroke_data.conv_to_jsonl('./data/3rd/palm/6c49', './data/jsonl', 'palm_6c49_')
+    palm_to_stroke_data.conv_to_jsonl('./data/3rd/palm/738b', './data/jsonl', 'palm_738b_')
     
     # # 生成平滑和包含部件信息的数据
-    for prefix in ['palm_6c49']:
+    for prefix in ['palm_738b']:
         for item in ['test', 'val', 'train']:
             stroke_data_normalize('./data/jsonl/{}_{}.jsonl'.format(prefix, item), './data/jsonl/{}_256x256_{}.jsonl'.format(prefix, item), width, height)
             stroke_data_add_comp('./labels/han.jsonl', './labels/comp.jsonl', './data/jsonl/{}_256x256_{}.jsonl'.format(prefix, item), './data/jsonl/{}_256x256_comp_{}.jsonl'.format(prefix, item))
