@@ -78,11 +78,11 @@ def hw_file_to_json_file(input_filename, f_all_json, f_train_json, f_val_json, f
 
 def conv_file_to_json_file(input_filename, output_pathname, out_perfix):
     os.makedirs(output_pathname, exist_ok=True)
-    f_all_json = open(os.path.join(output_pathname, out_perfix + '_all.jsonl'), 'w', encoding='utf-8')
-    f_train_json = open(os.path.join(output_pathname, out_perfix + '_train.jsonl'), 'w', encoding='utf-8')
-    f_val_json = open(os.path.join(output_pathname, out_perfix + '_val.jsonl'), 'w', encoding='utf-8')
-    f_test_json = open(os.path.join(output_pathname, out_perfix + '_test.jsonl'), 'w', encoding='utf-8')
-    hw_file_to_json_file(input_filename, f_all_json, f_train_json, f_val_json, f_test_json)
+    f_all_json = open(os.path.join(output_pathname, 'palm_' + out_perfix + '_all.jsonl'), 'w', encoding='utf-8')
+    f_train_json = open(os.path.join(output_pathname, 'palm_' + out_perfix + '_train.jsonl'), 'w', encoding='utf-8')
+    f_val_json = open(os.path.join(output_pathname, 'palm_' + out_perfix + '_val.jsonl'), 'w', encoding='utf-8')
+    f_test_json = open(os.path.join(output_pathname, 'palm_' + out_perfix + '_test.jsonl'), 'w', encoding='utf-8')
+        hw_file_to_json_file(input_filename, f_all_json, f_train_json, f_val_json, f_test_json)
 
 def conv_to_jsonl(data_pathname, jsonl_pathname):
     print('write {}'.format(jsonl_pathname))
@@ -107,5 +107,5 @@ def conv_to_jsonl(data_pathname, jsonl_pathname):
 if __name__=='__main__':
 
     # args = parse_args()
-    conv_file_to_json_file('./3rd/paine/4f60.json', './data/sdata/', 'palm_4f60')
+    conv_file_to_json_file('./3rd/paine/4f60.json', './data/sdata/',chr(0x4f60))
     # conv_to_jsonl('E:\\corpus\\handwrite\\samples\\sample_all\\sample', 'E:\\corpus\\handwrite\\samples\\palm')

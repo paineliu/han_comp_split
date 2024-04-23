@@ -12,7 +12,7 @@ import random
 import json
 import numpy as np
 import tqdm
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from torch import optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
@@ -85,6 +85,8 @@ class HanCompLabel():
     def getLabelMaxLen(self):
         return self.han_comp.get_comp_max_num() + 2
 
+    def getLabelStrokeNum(self, label):
+        return self.han_comp.get_comp_stroke_num(label)
     def __getitem__(self, idx):
         return idx
         
@@ -114,29 +116,6 @@ class HanOrderLabel():
     def __len__(self):
         return self.han_comp.get_stroke_max_num() + 2
 
-# class HanOrderLabel():
-
-#     def __init__(self, han_comp:HanComp):
-#         self.han_comp = han_comp
-
-#     def getBosId(self):
-#         return self.han_comp.get_stroke_max_num()
-
-#     def getEosId(self):
-#         return self.han_comp.get_stroke_max_num() + 1
-
-#     def getLabel(self,  idx):
-#         return self.han_comp.get_comp_name(idx)
-    
-#     def getLabelMaxLen(self):
-#         return self.han_comp.get_stroke_max_num() + 2
-
-#     def __getitem__(self, idx):
-#         return idx
-        
-#     def __len__(self):
-#         return self.han_comp.get_stroke_max_num() + 2
-
 class HanStrokeLabel():
     def __init__(self, han_comp:HanComp):
         self.han_comp = han_comp
@@ -149,28 +128,6 @@ class HanStrokeLabel():
 
     def getLabel(self,  idx):
         return str(idx)
-
-    def getLabelMaxLen(self):
-        return self.han_comp.get_stroke_max_num() + 2
-
-    def __getitem__(self, idx):
-        return idx
-    
-    def __len__(self):
-        return self.han_comp.get_stroke_total() + 2
-
-class HanStrokeLabel1():
-    def __init__(self, han_comp:HanComp):
-        self.han_comp = han_comp
-
-    def getBosId(self):
-        return self.han_comp.get_stroke_total()
-
-    def getEosId(self):
-        return self.han_comp.get_stroke_total() + 1
-
-    def getLabel(self,  idx):
-        return str(idx + 1)
 
     def getLabelMaxLen(self):
         return self.han_comp.get_stroke_max_num() + 2
@@ -791,7 +748,7 @@ class HanMode:
 
         
         point_data.append([[-1, -1, -1, -1]])
-        print(point_data)
+        # print(point_data)
         point_len = len(point_data)
 
         point_data = torch.tensor(point_data, dtype=torch.float32)
@@ -822,6 +779,16 @@ class HanCompModel(HanMode):
         self.han_label = HanCompLabel(self.han_comp)
         super(HanCompModel, self).__init__(self.han_label, model_filename, device) 
 
+    def getLabelStrokeRange(self, labels):
+        stroke_range = []
+        begin = 0
+        for label in labels:
+            len = self.han_comp.get_comp_stroke_num(label)
+            stroke_range.append({'begin':begin, 'end':begin + len})
+            begin += len
+        return stroke_range
+
+        return 
 
 if __name__ == "__main__":
 

@@ -164,4 +164,7 @@ prepare/
 data/
 output/
 3rd/
+*.bkp
+*.dtmp
+
 
