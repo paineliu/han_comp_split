@@ -11,13 +11,12 @@ if __name__=='__main__':
     han_code = '6728' # 木 0.98
     han_code = '79cb' # 秋 0.54
     # han_code = '8bed' # 语 0.71
-    # han_code = '4f60' # 你 0.90
-    #han_code = '6c49' # 汉 0.99
-
-    han_code = '597d'
+    
+    han_code = '4f60' # 你 0.90
+    an_code = '6c49' # 汉 0.99
+    han_code = '597d' #好
     han_code = '600e' # 怎 
-
-    # conv_to_jsonl('./data/sd/{}'.format(han_code), './data/jsonl', 'palm_{}_'.format(han_code))
+    han_code = '738b' # 王 1.0
        
     conv_to_jsonl('./data/3rd/palm/{}'.format(han_code), './data/jsonl', 'palm_{}_'.format(han_code))
      
