@@ -390,7 +390,10 @@ def train(han_label, model, model_filename, optimizer, criterion, train_data_loa
         f.close()
 
     begin_epoc = len(json_data['epoch'])
-    
+    if begin_epoc != 0:
+        filename_ext = model_filename.split(".")[-1]
+        epoch_model_filename = "{}.{}.{}".format(model_filename[:-len(filename_ext)-1], begin_epoc-1, filename_ext)
+        model.load_state_dict(torch.load(epoch_model_filename))  #model.load_state_dict()函数把加载的权重复制到模型的权重中去
     for epoch in range(begin_epoc, n_epochs):
         
         train_loss = train_fn(
