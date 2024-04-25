@@ -771,14 +771,20 @@ class HanOrderModel(HanMode):
     def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
         self.han_comp = HanComp(han_filename, comp_filename)
         self.han_label = HanOrderLabel(self.han_comp)
-        super(HanOrderModel, self).__init__(self.han_label, model_filename, device) 
+        super().__init__(self.han_label, model_filename, device) 
+
+class HanStrokeModel(HanMode):
+    def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
+        self.han_comp = HanComp(han_filename, comp_filename)
+        self.han_label = HanStrokeLabel(self.han_comp)
+        super().__init__(self.han_label, model_filename, device) 
 
 class HanCompModel(HanMode):
     def __init__(self, han_filename, comp_filename, model_filename, device = 'cpu'):
         self.han_comp = HanComp(han_filename, comp_filename)
         self.han_label = HanCompLabel(self.han_comp)
-        super(HanCompModel, self).__init__(self.han_label, model_filename, device) 
-
+        super().__init__(self.han_label, model_filename, device) 
+    
     def getLabelStrokeRange(self, labels):
         stroke_range = []
         begin = 0

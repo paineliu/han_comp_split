@@ -49,15 +49,16 @@ class HanWidget(QWidget):
                             pp.drawLine(beginPos, endPos)
         else:
             for s, stroke in enumerate(self.strokes):
-                pp.setPen(QColor(0, 0, 0)) 
+                if len(self.orders) > s:
+                    pp.setPen(QColor(255, 0, 0))                     
+                    beginPos = QPoint(stroke[0]['x'], stroke[0]['y'])
+                    self.drawText(pp, beginPos, str(self.orders[s]))
+                else:
+                    pp.setPen(QColor(0, 0, 0)) 
                 for i in range(1, len(stroke)):
                     beginPos = QPoint(stroke[i-1]['x'], stroke[i-1]['y'])
                     endPos = QPoint(stroke[i]['x'], stroke[i]['y'])
                     pp.drawLine(beginPos, endPos)
-                if len(self.orders) > s:
-                    pp.setPen(QColor(255, 0, 0)) 
-                    beginPos = QPoint(self.strokes[s][0]['x'], self.strokes[s][0]['y'])
-                    self.drawText(pp, beginPos, str(self.orders[s]))
 
         self.lastPoint = self.endPoint
         painter = QPainter(self)
@@ -91,7 +92,14 @@ class HanWidget(QWidget):
             self.endPoint = event.pos()
             self.update()
 
-    def set_strokes(self, points):
+    def set_strokes(self, strokes):
+        self.strokes.clear()
+        for each in strokes:
+            self.strokes.append([])
+            for point in each:
+                self.strokes[-1].append({'x': point['x'], 'y':point['y']})
+
+    def set_points(self, points):
         index = 0
         self.strokes.clear()
         self.strokes.append([])
@@ -111,9 +119,18 @@ class HanWidget(QWidget):
 
         self.update()
 
+    def check_stroke(self, model:HanStrokeModel):
+        self.compRange.clear()
+        orders = model.get_order(copy.deepcopy(self.strokes))
+        
+        self.orders = orders.split(',')
+
+        self.update()
+
     def check_order(self, model:HanOrderModel):
         self.compRange.clear()
         orders = model.get_order(copy.deepcopy(self.strokes))
+
         self.orders = orders.split(',')
         strokes = []
         for i in range(len(self.orders)):
@@ -140,16 +157,22 @@ class MainWindow(QMainWindow):
         self.hanPad = HanWidget()
         han_filename = './labels/han.jsonl'
         comp_filename = './labels/comp.jsonl'
-        self.json_filename = './data/casia/han_comp_casia_test.jsonl'
+
+        self.json_filename = './output/palm_4f60_256x256_comp_test.jsonl'
+        model_filename = './output/han_sorder_palm_4f60_model.20.pt'
         self.hw_data = []
         f = open(self.json_filename, 'r', encoding='utf_8')
         for each in f:
             jdata = json.loads(each)
             self.hw_data.append(jdata)
         print(len(self.hw_data))
-        self.hanPad.set_strokes(self.hw_data[0]['points'])
-        model_filename = './output/{}/{}_model.20.pt'.format('han_sorder_palm', 'han_sorder_palm_4f60')
+        self.hanPad.set_strokes(self.hw_data[0]['strokes'])
+        
         self.hanOrderModel = HanOrderModel(han_filename, comp_filename, model_filename)
+
+        model_filename = './output/han_stroke_casia_model.19.pt'
+        self.hanStrokeModel = HanStrokeModel(han_filename, comp_filename, model_filename)
+
         model_filename = './output/{}/{}_model.10.pt'.format('han_comp_casia', 'han_comp_casia')
         self.hanCompModel = HanCompModel(han_filename, comp_filename, model_filename)
         menuBar = self.menuBar()
@@ -190,7 +213,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         
     def on_act_start(self):
+        self.hanPad.check_stroke(self.hanStrokeModel)
         self.hanPad.check_order(self.hanOrderModel)
+        
         pass
 
     def on_act_reset(self):
@@ -204,15 +229,15 @@ class MainWindow(QMainWindow):
     def on_act_next(self):
         if self.hw_index < len(self.hw_data) - 1:
             self.hw_index += 1
-        self.hanPad.set_strokes(self.hw_data[self.hw_index]['points'])
+        self.hanPad.set_strokes(self.hw_data[self.hw_index]['strokes'])
         self.on_act_pause()
         self.hanPad.update()
         pass
 
     def on_act_prev(self):
-        if (self.hw_index > 1):
+        if (self.hw_index > 0):
             self.hw_index -= 1
-        self.hanPad.set_strokes(self.hw_data[self.hw_index]['points'])
+        self.hanPad.set_strokes(self.hw_data[self.hw_index]['strokes'])
         self.on_act_pause()
         self.hanPad.update()
         pass
