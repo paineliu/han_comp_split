@@ -598,67 +598,67 @@ def train_model(han_label, name, epochs, add_han_label_dataset=False):
     # test(han_label, model, model_filename, test_data_loader, max_num=10000)
     # predict(han_label, model, model_filename, oov_data_loader, show_all=True, max_num=100)
 
-def predict_order(han_label, model_filename, test_filename, device):
-    output_dim = len(han_label)
-    attention = Attention(encoder_hidden_dim, decoder_hidden_dim)
+# def predict_order(han_label, model_filename, test_filename, device):
+#     output_dim = len(han_label)
+#     attention = Attention(encoder_hidden_dim, decoder_hidden_dim)
 
-    encoder = Encoder(
-        encoder_embedding_dim,
-        encoder_hidden_dim,
-        decoder_hidden_dim,
-        encoder_dropout,
-    )
+#     encoder = Encoder(
+#         encoder_embedding_dim,
+#         encoder_hidden_dim,
+#         decoder_hidden_dim,
+#         encoder_dropout,
+#     )
 
-    decoder = Decoder(
-        output_dim,
-        decoder_embedding_dim,
-        encoder_hidden_dim,
-        decoder_hidden_dim,
-        decoder_dropout,
-        attention,
-    )
+#     decoder = Decoder(
+#         output_dim,
+#         decoder_embedding_dim,
+#         encoder_hidden_dim,
+#         decoder_hidden_dim,
+#         decoder_dropout,
+#         attention,
+#     )
 
-    os.makedirs(os.path.dirname(model_filename), exist_ok=True)
+#     os.makedirs(os.path.dirname(model_filename), exist_ok=True)
 
-    model = Seq2Seq(encoder, decoder, device).to(device)
-    if device == 'cpu':
-        model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
-    else:
-        model.load_state_dict(torch.load(model_filename))
+#     model = Seq2Seq(encoder, decoder, device).to(device)
+#     if device == 'cpu':
+#         model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
+#     else:
+#         model.load_state_dict(torch.load(model_filename))
 
-    batch = {}
-    f = open(test_filename, mode='r', encoding='utf_8')
-    for each in f:
-        batch = json.loads(each)
-        point_data = []
-        label_ids = []
-        point_data.append([[0, 0, 0, 0]])
-        for item in batch['points']:
-            point_data.append([item])
-        point_data.append([[-1, -1, -1, -1]])
+#     batch = {}
+#     f = open(test_filename, mode='r', encoding='utf_8')
+#     for each in f:
+#         batch = json.loads(each)
+#         point_data = []
+#         label_ids = []
+#         point_data.append([[0, 0, 0, 0]])
+#         for item in batch['points']:
+#             point_data.append([item])
+#         point_data.append([[-1, -1, -1, -1]])
 
-        point_len = len(point_data)
+#         point_len = len(point_data)
 
-        labels = batch['labels'] 
-        label_ids.append([han_label.getBosId()])
-        for label in labels:
-            label_ids.append([label])
-        label_ids.append([han_label.getEosId()])
-        point_data = torch.tensor(point_data, dtype=torch.float32)
-        label_ids = torch.tensor(label_ids, dtype=torch.long)
+#         labels = batch['labels'] 
+#         label_ids.append([han_label.getBosId()])
+#         for label in labels:
+#             label_ids.append([label])
+#         label_ids.append([han_label.getEosId()])
+#         point_data = torch.tensor(point_data, dtype=torch.float32)
+#         label_ids = torch.tensor(label_ids, dtype=torch.long)
         
-        points = point_data
-        points_len = torch.tensor([point_len], dtype=torch.long)
-        batch_labels = label_ids
+#         points = point_data
+#         points_len = torch.tensor([point_len], dtype=torch.long)
+#         batch_labels = label_ids
 
-        batch = {
-            "points": points,
-            "points_len": points_len,
-            "labels": batch_labels
-        }
+#         batch = {
+#             "points": points,
+#             "points_len": points_len,
+#             "labels": batch_labels
+#         }
 
-        predict_label, _ = predict_fn(han_label, batch, model, device, len(han_label))
-        print(predict_label)
+#         predict_label, _ = predict_fn(han_label, batch, model, device, len(han_label))
+#         print(predict_label)
 
 class HanMode:
     def __init__(self, han_abel, model_filename, device = 'cpu'):
@@ -811,7 +811,7 @@ if __name__ == "__main__":
 
     model_filename = './output/{}/{}_model.4.pt'.format('han_sorder_palm_4f60', 'han_sorder_palm_4f60')
     
-    predict_order(han_order_label, model_filename, './data/result/han_sorder_palm_4f60_test.jsonl', 'cpu')
+    # predict_order(han_order_label, model_filename, './data/result/han_sorder_palm_4f60_test.jsonl', 'cpu')
     # train_model(han_comp_label, 'han_comp_extr_casia', epochs = 100, add_han_label_dataset=False)
     # train_model(han_order_label, 'han_sorder_palm_6728', epochs = 100, add_han_label_dataset=False)
     # train_model(han_order_label, 'han_sorder_palm_6c49', epochs = 100, add_han_label_dataset=False)
