@@ -49,6 +49,11 @@ class HanDataset(Dataset):
         item = self.h5db[idx]
         if self.add_han_label:
             han_ord = ord(item['han'])
+            x,y = item['points'].shape
+            padded_array = np.full((5, y), han_ord)
+  
+            padded_array[:4, :] = item['points']
+  
             point_data = [[0, 0, 0, 0]] + [[han_ord, han_ord, han_ord, han_ord]] + item['points'].tolist() + [[-1, -1, -1, -1]]
         else:
             point_data = [[0, 0, 0, 0]] + item['points'].tolist() + [[-1, -1, -1, -1]]

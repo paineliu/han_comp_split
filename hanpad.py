@@ -32,7 +32,7 @@ class HanWidget(QWidget):
     # 重绘的复写函数 主要在这里绘制
     def paintEvent(self, event):
         pp = QPainter(self.pix)
-        pp.setRenderHint (QPainter.Antialiasing)
+        pp.setRenderHint(QPainter.Antialiasing)
         pen = QPen() # 定义笔格式对象
         pen.setWidth(3)  # 设置笔的宽度
         pp.setPen(pen) #将笔格式赋值给 画笔
@@ -50,6 +50,7 @@ class HanWidget(QWidget):
         else:
             for s, stroke in enumerate(self.strokes):
                 if len(self.orders) > s:
+                    # pp.setPen(QColor(0, 0, 0))
                     pp.setPen(QColor(255, 0, 0))                     
                     beginPos = QPoint(stroke[0]['x'], stroke[0]['y'])
                     self.drawText(pp, beginPos, str(self.orders[s]))
@@ -170,11 +171,12 @@ class MainWindow(QMainWindow):
         
         self.hanOrderModel = HanOrderModel(han_filename, comp_filename, model_filename)
 
-        model_filename = './output/han_stroke_casia_model.19.pt'
+        model_filename = './output/han_stroke_casia_model.39.pt'
         self.hanStrokeModel = HanStrokeModel(han_filename, comp_filename, model_filename)
 
         model_filename = './output/{}/{}_model.10.pt'.format('han_comp_casia', 'han_comp_casia')
         self.hanCompModel = HanCompModel(han_filename, comp_filename, model_filename)
+
         menuBar = self.menuBar()
         file_menu = menuBar.addMenu("文件(&F)")
         act_start = file_menu.addAction(QIcon("./res/start.png"), "笔顺(&S)")
@@ -220,7 +222,20 @@ class MainWindow(QMainWindow):
 
     def on_act_reset(self):
         self.hanPad.reset()
-        pass
+ 
+        file_path, _ = QFileDialog.getOpenFileName(None, "选择文件")
+        
+        if file_path:
+            self.json_filename = file_path
+            
+            self.hw_data = []
+            f = open(self.json_filename, 'r', encoding='utf_8')
+            for each in f:
+                jdata = json.loads(each)
+                self.hw_data.append(jdata)
+            print(len(self.hw_data))
+            self.hanPad.set_strokes(self.hw_data[0]['strokes'])
+            
 
     def on_act_pause(self):
         self.hanPad.check_comp(self.hanCompModel)
