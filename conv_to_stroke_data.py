@@ -253,11 +253,21 @@ def conv_to_jsonl(data_pathname, jsonl_filename):
     
 if __name__=='__main__':
 
-    # args = parse_args()
-    conv_to_jsonl('./data/3rd/casia/Pot1.0Test', './data/jsonl/casia_test.jsonl')
-    conv_to_jsonl('./data/3rd/casia/Pot1.0Val', './data/jsonl/casia_val.jsonl')
-    conv_to_jsonl('./data/3rd/casia/Pot1.0Train', './data/jsonl/casia_train.jsonl')
+    # # args = parse_args()
+    # conv_to_jsonl('./data/3rd/casia/Pot1.0Test', './data/jsonl/casia_test.jsonl')
+    # conv_to_jsonl('./data/3rd/casia/Pot1.0Val', './data/jsonl/casia_val.jsonl')
+    # conv_to_jsonl('./data/3rd/casia/Pot1.0Train', './data/jsonl/casia_train.jsonl')
 
-    conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/test', './data/jsonl/scut_gb1_188_test.jsonl')
-    conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/train', './data/jsonl/scut_gb1_188_train.jsonl')
-    conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/val', './data/jsonl/scut_gb1_188_val.jsonl')
+    # conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/test', './data/jsonl/scut_gb1_188_test.jsonl')
+    # conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/train', './data/jsonl/scut_gb1_188_train.jsonl')
+    # conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/val', './data/jsonl/scut_gb1_188_val.jsonl')
+
+    #遍历文件夹下的子文件夹
+    output_path = './data/jsonl/casia'
+    os.makedirs(output_path, exist_ok=True)
+    for parent, dirs, files in os.walk('./data/casia'):
+        for dir in dirs:
+            full_path = os.path.join(parent, dir)
+            print(full_path, os.path.join(output_path, dir + '.jsonl'))
+            conv_to_jsonl(full_path, os.path.join(output_path, dir + '.jsonl'))
+
