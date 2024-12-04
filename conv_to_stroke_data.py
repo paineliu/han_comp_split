@@ -11,8 +11,8 @@ def parse_args():
 
     return parser.parse_args()
 
-def scut_file_to_json_file(idx_filename, dat_filename, f_json):
-    print(idx_filename)
+def scut_file_to_list(idx_filename, dat_filename, list_data):
+    # print(idx_filename)
     base_filename = os.path.basename(idx_filename)
     base_filename = os.path.splitext(base_filename)[0]
 
@@ -111,14 +111,14 @@ def scut_file_to_json_file(idx_filename, dat_filename, f_json):
             rect = {'left': l,'top': t, 'width': w, 'height': h}
            
             jdata = {'filename':base_filename, 'label': code, 'rect': rect, 'strokes': stroke_data}
-            f_json.write('{}\n'.format(json.dumps(jdata, ensure_ascii=False)))
+            list_data.append(jdata)
 
         except:
             print('err', dat_offset, 'decode:', data)
             pass
     f.close()
 
-def hw_file_to_json_file(input_filename, f_json):
+def hw_file_to_list(input_filename, list_data):
     print(input_filename)
     base_filename = os.path.basename(input_filename)
     base_filename = os.path.splitext(base_filename)[0]
@@ -162,11 +162,11 @@ def hw_file_to_json_file(input_filename, f_json):
         rect = {'left': l, 'top': t, 'width': w, 'height': h}
 
         out_data = {'filename':base_filename, 'label': jdata['sel'], 'rect': rect, 'strokes': stroke_data}
-        f_json.write('{}\n'.format(json.dumps(out_data, ensure_ascii=False)))
+        list_data.append(out_data)
 
     f.close()
 
-def pot_file_to_json_file(pot_filename, f_json):
+def pot_file_to_list(pot_filename, list_data):
     print(' -> {}'.format(pot_filename))
     base_filename = os.path.basename(pot_filename)
     f = open(pot_filename, 'rb')
@@ -223,7 +223,7 @@ def pot_file_to_json_file(pot_filename, f_json):
         rect = {'left': l, 'top': t, 'width': w, 'height': h}
 
         jdata = {'filename':base_filename, 'label': tagcode,  'rect': rect,'strokes': stroke_data}
-        f_json.write('{}\n'.format(json.dumps(jdata, ensure_ascii=False)))
+        list_data.append(jdata)
 
 
 def conv_to_jsonl(data_pathname, jsonl_filename):
@@ -231,23 +231,26 @@ def conv_to_jsonl(data_pathname, jsonl_filename):
             
     os.makedirs(os.path.dirname(jsonl_filename), exist_ok=True)
     f_json = open(jsonl_filename, 'w', encoding='utf-8')
+    list_data = []
     for parent, dirs, files in os.walk(data_pathname):
         for filename in files:
             fullname = os.path.join(parent, filename)
             if filename.endswith('.json'):
-                hw_file_to_json_file(fullname, f_json)
+                hw_file_to_list(fullname, list_data)
                 
             if filename.endswith('.jsonl'):
-                hw_file_to_json_file(fullname, f_json)
+                hw_file_to_list(fullname, list_data)
 
             if filename.endswith('.pot'):
-                pot_file_to_json_file(fullname, f_json)
+                pot_file_to_list(fullname, list_data)
 
             if filename.endswith('.idx'):
                 idx_filename = os.path.join(parent, filename)
                 dat_filename = os.path.join(parent, filename[:-4] + ".dat")
-                scut_file_to_json_file(idx_filename, dat_filename, f_json)
+                scut_file_to_list(idx_filename, dat_filename, list_data)
             
+    for jdata in list_data:
+        f_json.write('{}\n'.format(json.dumps(jdata, ensure_ascii=False)))
 
     print("finished.")
     
@@ -263,11 +266,24 @@ if __name__=='__main__':
     # conv_to_jsonl('./data/3rd/scut/Couch_GB1_188/val', './data/jsonl/scut_gb1_188_val.jsonl')
 
     #遍历文件夹下的子文件夹
-    output_path = './data/jsonl/casia'
+    output_path = './data/jsonl/couch/Couch_Digit_195'
+    input_path = './data/couch/Couch_Digit_195'
     os.makedirs(output_path, exist_ok=True)
-    for parent, dirs, files in os.walk('./data/casia'):
-        for dir in dirs:
-            full_path = os.path.join(parent, dir)
-            print(full_path, os.path.join(output_path, dir + '.jsonl'))
-            conv_to_jsonl(full_path, os.path.join(output_path, dir + '.jsonl'))
+    for parent, dirs, files in os.walk(input_path):
+        # for dir in dirs:
+            # full_path = os.path.join(parent, dir)
+            # print(full_path, os.path.join(output_path, dir + '.jsonl'))
+            # conv_to_jsonl(full_path, os.path.join(output_path, dir + '.jsonl'))
+        for file in files:
+            if file.endswith('.idx'):
+                list_data = []
+                full_filename = os.path.join(parent, file)
+                json_filename = full_filename.replace('.idx', '.json')
+                json_filename = json_filename.replace(input_path, output_path)
+                dat_filename = full_filename[:-4] + ".dat"
+                os.makedirs(os.path.dirname(json_filename), exist_ok=True)
+                f_json = open(json_filename, 'w', encoding='utf-8')
+                scut_file_to_list(full_filename, dat_filename, list_data)
+                print(full_filename, json_filename)
+                json.dump(list_data, f_json, ensure_ascii=False, indent=4)
 
